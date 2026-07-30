@@ -1,0 +1,361 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PRINCIPAL
+  ADMIN
+  TEACHER
+  ACCOUNTANT
+  REGISTRAR
+  COUNSELOR
+  STUDENT
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+}
+
+enum StudentStatus {
+  PENDING_ENROLLMENT
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  EXPELLED
+  TRANSFERRED
+  WITHDRAWN
+  GRADUATED
+}
+
+enum RegistrationStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  ENROLLED
+}
+
+enum RegistrationDocumentType {
+  PHOTO
+  PREVIOUS_ACADEMIC_RECORD
+  TRANSCRIPT
+  REPORT_CARD
+  BIRTH_CERTIFICATE
+  TRANSFER_CERTIFICATE
+  MEDICAL_RECORD
+  PARENT_ID
+  OTHER
+}
+
+model User {
+  id                 String     @id @default(cuid())
+  email              String     @unique
+  passwordHash       String
+  role               Role
+  status             UserStatus @default(ACTIVE)
+
+  firstName          String
+  lastName           String
+  phone              String?
+
+  mustChangePassword Boolean    @default(false)
+  lastLoginAt        DateTime?
+
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  teacher            TeacherProfile?
+  staff              StaffProfile?
+  student            StudentProfile?
+
+  registrationsCreated RegistrationApplication[] @relation("RegistrationCreator")
+  registrationsReviewed RegistrationApplication[] @relation("RegistrationReviewer")
+
+  uploadedRegistrationDocuments RegistrationDocument[] @relation("RegistrationDocumentUploader")
+  verifiedRegistrationDocuments RegistrationDocument[] @relation("RegistrationDocumentVerifier")
+
+  promotionLogs      PromotionLog[] @relation("PromotionActor")
+  auditLogs          AuditLog[] @relation("Actor")
+
+  @@index([role, status])
+}
+
+model StaffProfile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  staffId    String   @unique
+  title      String?
+  department String?
+  isActive   Boolean  @default(true)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model TeacherProfile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  staffId    String   @unique
+  title      String?
+  department String?
+  isActive   Boolean  @default(true)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model RegistrationPeriod {
+  id             String   @id @default(cuid())
+
+  academicYear   String
+  name           String
+
+  startDate      DateTime
+  endDate        DateTime
+
+  isActive       Boolean  @default(false)
+
+  allowPrincipal Boolean  @default(true)
+  allowRegistrar Boolean  @default(true)
+  allowCounselor Boolean  @default(true)
+  allowAdmin     Boolean  @default(true)
+
+  applications   RegistrationApplication[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([academicYear, name])
+}
+
+model RegistrationApplication {
+  id                   String               @id @default(cuid())
+
+  registrationPeriodId String?
+  registrationPeriod   RegistrationPeriod?  @relation(fields: [registrationPeriodId], references: [id])
+
+  status               RegistrationStatus   @default(DRAFT)
+
+  firstName            String
+  middleName           String?
+  lastName             String
+
+  dateOfBirth          DateTime
+  gender               String
+
+  nationality          String?
+  ethnicity            String?
+  religion             String?
+
+  applyingGradeLevel   Int
+
+  photoUrl             String?
+
+  previousSchoolName   String?
+  previousSchoolGrade  String?
+  previousAcademicYear String?
+  transferReason       String?
+
+  guardianName         String?
+  guardianRelationship String?
+  guardianPhone        String?
+  guardianEmail        String?
+  guardianAddress      String?
+
+  emergencyContactName String?
+  emergencyContactPhone String?
+
+  medicalNotes         String?
+
+  createdById          String?
+  createdBy            User?                @relation("RegistrationCreator", fields: [createdById], references: [id])
+
+  reviewedById         String?
+  reviewedBy           User?                @relation("RegistrationReviewer", fields: [reviewedById], references: [id])
+
+  reviewedAt           DateTime?
+  rejectionReason      String?
+
+  studentId            String?              @unique
+  student              StudentProfile?      @relation(fields: [studentId], references: [id])
+
+  documents            RegistrationDocument[]
+
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  @@index([status, applyingGradeLevel])
+  @@index([lastName, firstName])
+}
+
+model RegistrationDocument {
+  id             String                   @id @default(cuid())
+
+  registrationId String
+  registration   RegistrationApplication  @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  type           RegistrationDocumentType
+  title          String
+  url            String
+  mimeType       String
+  fileSize       Int
+
+  uploadedById   String?
+  uploadedBy     User?                    @relation("RegistrationDocumentUploader", fields: [uploadedById], references: [id])
+
+  verifiedById   String?
+  verifiedBy     User?                    @relation("RegistrationDocumentVerifier", fields: [verifiedById], references: [id])
+
+  verifiedAt     DateTime?
+
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+
+  @@index([registrationId, type])
+}
+
+model StudentProfile {
+  id                    String          @id @default(cuid())
+
+  userId                String?         @unique
+  user                  User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  admissionNumber       String          @unique
+
+  firstName             String
+  middleName            String?
+  lastName              String
+
+  dateOfBirth           DateTime
+  gender                String
+
+  ethnicity             String?
+  nationality           String?
+  religion              String?
+
+  gradeLevel            Int
+  homeroom              String?
+
+  status                StudentStatus   @default(PENDING_ENROLLMENT)
+
+  enrollmentDate        DateTime
+  expectedGraduation    DateTime?
+
+  addressLine1          String?
+  city                  String?
+  state                 String?
+  postalCode            String?
+  country               String?
+
+  guardianName          String?
+  guardianRelationship  String?
+  guardianPhone         String?
+  guardianEmail         String?
+
+  emergencyContactName  String?
+  emergencyContactPhone String?
+
+  medicalNotes          String?
+
+  photoUrl              String?
+
+  previousSchoolName    String?
+  previousSchoolGrade   String?
+  previousAcademicYear  String?
+  transferReason        String?
+
+  expelledAt            DateTime?
+  expulsionReason       String?
+
+  withdrawnAt           DateTime?
+  withdrawalReason      String?
+
+  transferredAt         DateTime?
+  transferSchoolName    String?
+
+  graduatedAt           DateTime?
+
+  lastPromotedAt        DateTime?
+  promotionHeld         Boolean         @default(false)
+
+  registrationApplication RegistrationApplication?
+
+  promotionLogs         PromotionLog[]
+  yearSnapshots         StudentYearSnapshot[]
+
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@index([status, gradeLevel])
+  @@index([lastName, firstName])
+}
+
+model PromotionLog {
+  id           String         @id @default(cuid())
+
+  studentId    String
+  student      StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  fromGrade    Int
+  toGrade      Int
+
+  academicYear String
+  reason       String?
+
+  promotedById String?
+  promotedBy   User?          @relation("PromotionActor", fields: [promotedById], references: [id])
+
+  createdAt    DateTime       @default(now())
+
+  @@index([studentId, academicYear])
+}
+
+model StudentYearSnapshot {
+  id           String         @id @default(cuid())
+
+  studentId    String
+  student      StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  academicYear String
+  age          Int
+  gradeLevel   Int
+  status       StudentStatus
+
+  snapshotDate DateTime       @default(now())
+
+  @@unique([studentId, academicYear])
+  @@index([academicYear, gradeLevel])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+
+  actorId    String?
+  actor      User?    @relation("Actor", fields: [actorId], references: [id])
+
+  action     String
+  entity     String
+  entityId   String?
+
+  before     Json?
+  after      Json?
+
+  ipAddress  String?
+  userAgent  String?
+
+  createdAt  DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([actorId, createdAt])
+}
