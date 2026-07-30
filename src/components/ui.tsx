@@ -5,6 +5,10 @@ import type { ReactNode } from "react";
 import { CountUp, Reveal } from "./motion";
 import { getRoleLabel } from "@/lib/roles";
 
+// Re-export the motion primitives so any page that pulls them from "@/components/ui"
+// (e.g. the student detail page) resolves them instead of getting `undefined`.
+export { Reveal, CountUp } from "./motion";
+
 export function Eyebrow({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <span className={`inline-block text-[11px] font-bold uppercase tracking-[0.2em] ${className}`}>
@@ -25,16 +29,21 @@ export function Crest({
   return (
     <span
       aria-hidden
-      className={`relative inline-grid shrink-0 place-items-center rounded-full ${className}`}
+      className={`relative inline-grid shrink-0 place-items-center overflow-hidden rounded-full ${className}`}
       style={{
         width: size,
         height: size,
-        background: "radial-gradient(circle at 30% 25%, #7a4f2e, #3a2414)",
+        background: "radial-gradient(circle at 30% 22%, #8a5e34, #3a2414 78%)",
         boxShadow:
-          "inset 0 0 0 2px rgba(203,157,84,.75), inset 0 0 0 5px rgba(58,36,20,.92), 0 8px 18px -8px rgba(58,36,20,.6)",
+          "inset 0 0 0 2px rgba(203,157,84,.78), inset 0 0 0 5px rgba(58,36,20,.92), 0 8px 18px -8px rgba(58,36,20,.6)",
       }}
     >
-      <span className="font-display font-semibold text-gold-soft" style={{ fontSize: size * 0.42 }}>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "radial-gradient(circle at 32% 26%, rgba(255,244,222,.32), transparent 46%)" }}
+      />
+      <span className="relative font-display font-semibold text-gold-soft" style={{ fontSize: size * 0.42 }}>
         {letter}
       </span>
     </span>
@@ -109,10 +118,16 @@ export function PrimaryLink({
   return (
     <Link
       href={href}
-      className={`group inline-flex items-center gap-2 rounded-full bg-cocoa px-5 py-2.5 text-sm font-semibold text-cream-50 shadow-soft transition duration-200 hover:-translate-y-0.5 hover:bg-cocoa-deep hover:shadow-lift active:translate-y-0 ${className}`}
+      className={`group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-cocoa px-5 py-2.5 text-sm font-semibold text-cream-50 shadow-soft transition duration-200 hover:-translate-y-0.5 hover:bg-cocoa-deep hover:shadow-lift active:translate-y-0 ${className}`}
     >
-      {children}
-      <Arrow />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-cream-50/20 to-transparent transition-transform duration-700 group-hover:translate-x-full"
+      />
+      <span className="relative">{children}</span>
+      <span className="relative">
+        <Arrow />
+      </span>
     </Link>
   );
 }
@@ -157,7 +172,7 @@ export function Panel({
 }) {
   return (
     <Reveal delay={delay} className={className}>
-      <section className="card lift relative flex h-full flex-col overflow-hidden">
+      <section className="card lift group relative flex h-full flex-col overflow-hidden">
         {accent && (
           <span
             aria-hidden
@@ -165,8 +180,12 @@ export function Panel({
             style={{ background: `linear-gradient(90deg, ${accent}, transparent 70%)` }}
           />
         )}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -inset-y-10 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-cream-50/45 to-transparent opacity-0 transition-all duration-700 ease-out group-hover:left-[120%] group-hover:opacity-100"
+        />
         {(kicker || title || action) && (
-          <header className="flex items-end justify-between gap-3 border-b border-line/70 px-5 pb-3 pt-4">
+          <header className="relative flex items-end justify-between gap-3 border-b border-line/70 px-5 pb-3 pt-4">
             <div>
               {kicker && <Eyebrow className="text-ink-faint">{kicker}</Eyebrow>}
               {title && (
@@ -176,7 +195,7 @@ export function Panel({
             {action}
           </header>
         )}
-        <div className={`flex-1 px-5 py-4 ${bodyClass}`}>{children}</div>
+        <div className={`relative flex-1 px-5 py-4 ${bodyClass}`}>{children}</div>
       </section>
     </Reveal>
   );
@@ -201,21 +220,25 @@ export function StatCard({
 }) {
   return (
     <Reveal delay={delay} className={className}>
-      <div className="card lift relative flex h-full flex-col justify-between overflow-hidden p-5">
+      <div className="card lift group relative flex h-full flex-col justify-between overflow-hidden p-5">
         <span
           aria-hidden
-          className="absolute -right-6 -top-7 h-20 w-20 rounded-full opacity-[0.08]"
+          className="absolute -right-6 -top-7 h-20 w-20 rounded-full opacity-[0.08] transition-transform duration-500 group-hover:scale-125"
           style={{ background: accent }}
         />
-        <Eyebrow className="text-ink-faint">{label}</Eyebrow>
-        <div className="mt-3 flex items-end gap-1">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -inset-y-10 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-cream-50/45 to-transparent opacity-0 transition-all duration-700 ease-out group-hover:left-[120%] group-hover:opacity-100"
+        />
+        <Eyebrow className="relative text-ink-faint">{label}</Eyebrow>
+        <div className="relative mt-3 flex items-end gap-1">
           <CountUp
             value={value}
             className="font-display text-4xl font-semibold leading-none text-ink tabular-nums"
           />
           {suffix && <span className="mb-1 font-display text-lg text-ink-mute">{suffix}</span>}
         </div>
-        {hint && <p className="mt-2 text-xs text-ink-mute">{hint}</p>}
+        {hint && <p className="relative mt-2 text-xs text-ink-mute">{hint}</p>}
       </div>
     </Reveal>
   );
@@ -233,9 +256,12 @@ export function Kpi({
   hint?: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-line/60 py-3 last:border-0">
+    <div className="group flex items-center justify-between gap-3 border-b border-line/60 py-3 transition-colors last:border-0 hover:bg-cream-50/60">
       <div className="flex items-center gap-3">
-        <span className="h-2.5 w-2.5 rounded-full" style={{ background: accent }} />
+        <span
+          className="h-2.5 w-2.5 rounded-full transition-transform duration-300 group-hover:scale-125"
+          style={{ background: accent }}
+        />
         <div>
           <p className="text-sm font-semibold text-ink">{label}</p>
           {hint && <p className="text-xs text-ink-mute">{hint}</p>}
