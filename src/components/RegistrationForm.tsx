@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Eyebrow, Field, Panel, Select, TextArea } from "./ui";
 
 export default function RegistrationForm() {
   const router = useRouter();
@@ -10,188 +11,93 @@ export default function RegistrationForm() {
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
     setError("");
     setLoading(true);
-
     try {
       const formData = new FormData(e.currentTarget);
-
       const payload = Object.fromEntries(formData.entries());
-
       const res = await fetch("/api/registrations", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.message || "Failed to create registration");
       }
-
       const registration = await res.json();
-
       router.push(`/registrations/${registration.id}`);
       router.refresh();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="space-y-6 rounded border bg-white p-6"
-    >
-      <div className="grid gap-4 md:grid-cols-2">
-        <div>
-          <label className="mb-1 block text-sm font-medium">First Name</label>
-          <input name="firstName" className="w-full rounded border px-3 py-2" required />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Middle Name</label>
-          <input name="middleName" className="w-full rounded border px-3 py-2" />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Last Name</label>
-          <input name="lastName" className="w-full rounded border px-3 py-2" required />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Date of Birth</label>
-          <input type="date" name="dateOfBirth" className="w-full rounded border px-3 py-2" required />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Gender</label>
-          <input name="gender" className="w-full rounded border px-3 py-2" required />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Applying Grade</label>
-          <select name="applyingGradeLevel" className="w-full rounded border px-3 py-2" required>
+    <form onSubmit={onSubmit} className="space-y-6">
+      <Panel kicker="Step 1" title="Student information" accent="#5b3a22">
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label="First name" name="firstName" required />
+          <Field label="Middle name" name="middleName" />
+          <Field label="Last name" name="lastName" required />
+          <Field label="Date of birth" name="dateOfBirth" type="date" required />
+          <Field label="Gender" name="gender" required />
+          <Select label="Applying grade" name="applyingGradeLevel" required>
             <option value="">Select grade</option>
             <option value="9">Grade 9</option>
             <option value="10">Grade 10</option>
             <option value="11">Grade 11</option>
             <option value="12">Grade 12</option>
-          </select>
+          </Select>
+          <Field label="Nationality" name="nationality" />
+          <Field label="Ethnicity" name="ethnicity" />
+          <Field label="Religion" name="religion" className="md:col-span-2" />
         </div>
+      </Panel>
 
-        <div>
-          <label className="mb-1 block text-sm font-medium">Nationality</label>
-          <input name="nationality" className="w-full rounded border px-3 py-2" />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Ethnicity</label>
-          <input name="ethnicity" className="w-full rounded border px-3 py-2" />
-        </div>
-
-        <div>
-          <label className="mb-1 block text-sm font-medium">Religion</label>
-          <input name="religion" className="w-full rounded border px-3 py-2" />
-        </div>
-      </div>
-
-      <div>
-        <h2 className="mb-4 text-lg font-semibold">Previous School</h2>
-
+      <Panel kicker="Step 2" title="Previous school" accent="#a86a32">
         <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="mb-1 block text-sm font-medium">Previous School Name</label>
-            <input name="previousSchoolName" className="w-full rounded border px-3 py-2" />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Previous Grade</label>
-            <input name="previousSchoolGrade" className="w-full rounded border px-3 py-2" />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Previous Academic Year</label>
-            <input name="previousAcademicYear" className="w-full rounded border px-3 py-2" />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Transfer Reason</label>
-            <input name="transferReason" className="w-full rounded border px-3 py-2" />
-          </div>
+          <Field label="School name" name="previousSchoolName" />
+          <Field label="Previous grade" name="previousSchoolGrade" />
+          <Field label="Academic year" name="previousAcademicYear" />
+          <Field label="Transfer reason" name="transferReason" />
         </div>
-      </div>
+      </Panel>
 
-      <div>
-        <h2 className="mb-4 text-lg font-semibold">Guardian Information</h2>
-
+      <Panel kicker="Step 3" title="Guardian information" accent="#6f7a45">
         <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="mb-1 block text-sm font-medium">Guardian Name</label>
-            <input name="guardianName" className="w-full rounded border px-3 py-2" required />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Relationship</label>
-            <input name="guardianRelationship" className="w-full rounded border px-3 py-2" />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Guardian Phone</label>
-            <input name="guardianPhone" className="w-full rounded border px-3 py-2" required />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Guardian Email</label>
-            <input type="email" name="guardianEmail" className="w-full rounded border px-3 py-2" />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium">Address</label>
-            <input name="guardianAddress" className="w-full rounded border px-3 py-2" />
-          </div>
+          <Field label="Guardian name" name="guardianName" required />
+          <Field label="Relationship" name="guardianRelationship" />
+          <Field label="Phone" name="guardianPhone" required />
+          <Field label="Email" name="guardianEmail" type="email" />
+          <Field label="Address" name="guardianAddress" className="md:col-span-2" />
         </div>
-      </div>
+      </Panel>
 
-      <div>
-        <h2 className="mb-4 text-lg font-semibold">Emergency and Medical</h2>
-
+      <Panel kicker="Step 4" title="Emergency & medical" accent="#8a5e26">
         <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="mb-1 block text-sm font-medium">Emergency Contact Name</label>
-            <input name="emergencyContactName" className="w-full rounded border px-3 py-2" />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Emergency Contact Phone</label>
-            <input name="emergencyContactPhone" className="w-full rounded border px-3 py-2" />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="mb-1 block text-sm font-medium">Medical Notes</label>
-            <textarea name="medicalNotes" className="w-full rounded border px-3 py-2" rows={3} />
-          </div>
+          <Field label="Emergency contact name" name="emergencyContactName" />
+          <Field label="Emergency contact phone" name="emergencyContactPhone" />
+          <TextArea label="Medical notes" name="medicalNotes" className="md:col-span-2" />
         </div>
+      </Panel>
+
+      {error && <p className="rounded-xl border border-bad/30 bg-bad/10 px-3 py-2 text-sm text-bad">{error}</p>}
+
+      <div className="flex items-center justify-between">
+        <p className="max-w-sm text-xs text-ink-mute">
+          After saving you will upload the photograph and previous academic records.
+        </p>
+        <button
+          type="submit"
+          disabled={loading}
+          className="rounded-full bg-cocoa px-6 py-3 text-sm font-semibold text-cream-50 shadow-soft transition hover:-translate-y-0.5 hover:bg-cocoa-deep hover:shadow-lift disabled:opacity-60"
+        >
+          {loading ? "Saving…" : "Save registration"}
+        </button>
       </div>
-
-      {error && <p className="text-sm text-red-600">{error}</p>}
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded bg-slate-900 px-4 py-2 text-white disabled:opacity-50"
-      >
-        {loading ? "Saving..." : "Save Registration"}
-      </button>
-
-      <p className="text-sm text-slate-500">
-        After saving, you will upload the photograph and previous academic records.
-      </p>
     </form>
   );
 }
