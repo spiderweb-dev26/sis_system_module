@@ -54,20 +54,112 @@ enum RegistrationDocumentType {
   OTHER
 }
 
-enum TermType { QUARTER SEMESTER YEAR FINAL }
-enum AssessmentType { ASSIGNMENT QUIZ TEST EXAM PROJECT OTHER }
-enum GradeStatus { DRAFT SUBMITTED LOCKED PUBLISHED }
-enum EnrollmentStatus { ACTIVE DROPPED COMPLETED }
-enum InvoiceStatus { DRAFT ISSUED PARTIALLY_PAID PAID OVERDUE VOID }
-enum PaymentStatus { PENDING COMPLETED FAILED REFUNDED }
-enum PaymentMethod { CASH BANK_TRANSFER CARD CHECK OTHER }
-enum AttendanceStatus { PRESENT ABSENT LATE EXCUSED }
-enum IncidentSeverity { LOW MEDIUM HIGH CRITICAL }
-enum DisciplineActionType { WARNING DETENTION COUNSELING SUSPENSION EXPULSION OTHER }
-enum CounselingCategory { ACADEMIC BEHAVIOR ATTENDANCE MENTAL_HEALTH FAMILY CAREER OTHER }
-enum RiskLevel { NONE LOW MEDIUM HIGH CRITICAL }
-enum AppointmentStatus { SCHEDULED COMPLETED CANCELLED NO_SHOW }
-enum InterventionStatus { PLANNED ACTIVE COMPLETED }
+enum TermType {
+  QUARTER
+  SEMESTER
+  YEAR
+  FINAL
+}
+
+enum AssessmentType {
+  ASSIGNMENT
+  QUIZ
+  TEST
+  EXAM
+  PROJECT
+  OTHER
+}
+
+enum GradeStatus {
+  DRAFT
+  SUBMITTED
+  LOCKED
+  PUBLISHED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  DROPPED
+  COMPLETED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  VOID
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CARD
+  CHECK
+  OTHER
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum IncidentSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum DisciplineActionType {
+  WARNING
+  DETENTION
+  COUNSELING
+  SUSPENSION
+  EXPULSION
+  OTHER
+}
+
+enum CounselingCategory {
+  ACADEMIC
+  BEHAVIOR
+  ATTENDANCE
+  MENTAL_HEALTH
+  FAMILY
+  CAREER
+  OTHER
+}
+
+enum RiskLevel {
+  NONE
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum InterventionStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+}
 
 model User {
   id                 String     @id @default(cuid())
