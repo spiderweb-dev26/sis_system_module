@@ -23,6 +23,7 @@ export default function AcademicsPage() {
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState<{ t: "ok" | "err"; m: string } | null>(null);
   const [sectionId, setSectionId] = useState<string>("");
+  const [grade, setGrade] = useState<string>("");
   const [gb, setGb] = useState<any>(null);
   const [gbLoading, setGbLoading] = useState(false);
   const [modal, setModal] = useState<null | string>(null);
@@ -31,10 +32,19 @@ export default function AcademicsPage() {
   const load = () => {
     setLoading(true);
     Promise.all([fetch("/api/academics").then((r) => r.json()), fetch("/api/students").then((r) => r.json()).catch(() => [])])
-      .then(([d, s]) => { setData(d); setStudents(Array.isArray(s) ? s : []); })
+      .then(([d, s]) => { 
+        setData(d); 
+        setStudents(Array.isArray(s) ? s : []); 
+        // Filter sections by grade
+        const sections = d.sections || [];
+        if (grade) {
+          const filtered = sections.filter(s => s.gradeLevel == Number(grade));
+          setData({ ...d, sections: filtered });
+        }
+      })
       .finally(() => setLoading(false));
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [grade]);
   useEffect(() => { fetch("/api/students").then((r) => r.json()).catch(() => []); }, []);
 
   const flash = (t: "ok" | "err", m: string) => { setMsg({ t, m }); setTimeout(() => setMsg(null), 4000); };
@@ -84,11 +94,20 @@ export default function AcademicsPage() {
       </div>
 
       {tab === "gradebook" && (
-        <Panel className="col-span-12" accent="#9c5638" title={gb ? `${gb.section.courseName} · ${gb.section.name}` : "Select a section"} action={
-          <select value={sectionId} onChange={(e) => e.target.value && openGradebook(e.target.value)} className="field w-64">
-            <option value="">Choose section…</option>
-            {sections.map((s: any) => <option key={s.id} value={s.id}>{s.courseName} — {s.code}</option>)}
-          </select>
+        <Panel className="col-span-12" accent="#9c5638" title={gb ? `${gb.section.gradeLevel}${gb.section.sectionLetter}` : "Select a section"} action={
+          <div className="flex gap-2">
+            <select value={grade} onChange={(e) => setGrade(e.target.value)} className="field w-32">
+              <option value="">All grades</option>
+              <option value="9">Grade 9</option>
+              <option value="10">Grade 10</option>
+              <option value="11">Grade 11</option>
+              <option value="12">Grade 12</option>
+            </select>
+            <select value={sectionId} onChange={(e) => e.target.value && openGradebook(e.target.value)} className="field w-64">
+              <option value="">Choose section…</option>
+              {sections.map((s: any) => <option key={s.id} value={s.id}>{s.gradeLevel}{s.sectionLetter} · {s.name}</option>)}
+            </select>
+          </div>
         } bodyClass="p-0">
           {gbLoading && <div className="p-6 text-sm text-ink-mute">Loading gradebook…</div>}
           {gb && !gbLoading && (
@@ -102,7 +121,7 @@ export default function AcademicsPage() {
                         <div className="text-[10px] font-bold uppercase text-ink-faint">{c.name.slice(0, 4)}</div>
                         <div className="font-semibold text-ink-soft">{a.name}</div>
                       </th>
-                    )))}
+                    ))}
                     <th className="px-3 py-3 text-right">Score</th>
                     <th className="px-3 py-3 text-right">Grade</th>
                   </tr>
@@ -121,7 +140,7 @@ export default function AcademicsPage() {
                             className="w-16 rounded-lg border border-line bg-cream-50/70 px-2 py-1 text-center text-xs tabular-nums focus:border-gold focus:outline-none disabled:opacity-60"
                           />
                         </td>
-                      )))}
+                      ))}
                       <td className="px-3 py-2 text-right font-display font-semibold text-ink tabular-nums">{gb.computed[s.id]?.score ?? "—"}</td>
                       <td className="px-3 py-2 text-right"><span className="rounded-full bg-cocoa/10 px-2 py-0.5 text-xs font-bold text-cocoa">{gb.computed[s.id]?.letter ?? "—"}</span></td>
                     </tr>
@@ -145,13 +164,12 @@ export default function AcademicsPage() {
         <Panel className="col-span-12" accent="#9c5638" action={isRecords(role) ? <button onClick={() => setModal("section")} className="rounded-full bg-cocoa px-4 py-2 text-sm font-semibold text-cream-50 transition hover:-translate-y-0.5 hover:bg-cocoa-deep">New section</button> : undefined} bodyClass="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-cream-100 text-left text-[11px] font-bold uppercase tracking-wide text-ink-faint"><tr><th className="px-5 py-3">Code</th><th className="px-5 py-3">Course</th><th className="px-5 py-3">Term</th><th className="px-5 py-3">Teacher</th><th className="px-5 py-3">Enrolled</th><th className="px-5 py-3" /></tr></thead>
+              <thead className="bg-cream-100 text-left text-[11px] font-bold uppercase tracking-wide text-ink-faint"><tr><th className="px-5 py-3">Section</th><th className="px-5 py-3">Grade</th><th className="px-5 py-3">Teacher</th><th className="px-5 py-3">Enrolled</th><th className="px-5 py-3" /></tr></thead>
               <tbody>
                 {sections.map((s: any) => (
                   <tr key={s.id} className="border-t border-line/60 transition hover:bg-cream-50">
-                    <td className="px-5 py-3 font-medium text-ink">{s.code}</td>
-                    <td className="px-5 py-3 text-ink-soft">{s.courseName}</td>
-                    <td className="px-5 py-3 text-ink-mute">{s.termName}</td>
+                    <td className="px-5 py-3 font-medium text-ink">{s.gradeLevel}{s.sectionLetter}</td>
+                    <td className="px-5 py-3 text-ink-soft">{s.gradeLevel}</td>
                     <td className="px-5 py-3 text-ink-mute">{s.teacherName}</td>
                     <td className="px-5 py-3 tabular-nums text-ink-soft">{s.enrolled}</td>
                     <td className="px-5 py-3 text-right">
@@ -201,13 +219,31 @@ export default function AcademicsPage() {
         </Form>
       </Modal>
       <Modal open={modal === "section"} onClose={() => setModal(null)} kicker="Timetable" title="New section" wide>
-        <Form onSubmit={async (fd) => { await post({ kind: "section", code: fd.get("code"), courseId: fd.get("courseId"), teacherId: fd.get("teacherId"), termId: fd.get("termId"), name: fd.get("name"), room: fd.get("room") }); flash("ok", "Section created."); load(); }}>
-          <Field label="Code *" name="code" required /><Field label="Section name" name="name" />
-          <Field label="Course *" name="courseId" as="select" options={courses.map((c: any) => ({ v: c.id, l: c.name }))} required />
+        <Form onSubmit={async (fd) => { 
+          // Ethiopian section format: grade + letter
+          const gradeLevel = Number(fd.get("gradeLevel"));
+          const sectionLetter = fd.get("sectionLetter")?.toString().toUpperCase();
+          
+          await post({ 
+            kind: "section", 
+            code: `${gradeLevel}${sectionLetter}`, 
+            gradeLevel, 
+            sectionLetter,
+            courseId: fd.get("courseId"), 
+            teacherId: fd.get("teacherId"), 
+            termId: fd.get("termId"), 
+            name: `${gradeLevel}${sectionLetter}`, 
+            room: fd.get("room") 
+          }); 
+          flash("ok", "Section created."); 
+          load(); 
+        }}>
+          <Field label="Grade *" name="gradeLevel" as="select" options={["9", "10", "11", "12"]} required />
+          <Field label="Section letter *" name="sectionLetter" type="text" placeholder="A, B, C..." required />
           <Field label="Term *" name="termId" as="select" options={terms.map((t: any) => ({ v: t.id, l: t.name }))} required />
-          <Field label="Teacher *" name="teacherId" as="select" options={(me ? [{ v: me.id && "", l: "" }] : []) as any} required />
+          <Field label="Teacher *" name="teacherId" as="select" options={teachers.map((t: any) => ({ v: t.id, l: t.name }))} required />
           <Field label="Room" name="room" />
-          <p className="text-xs text-ink-faint">Teacher assignment uses the staff list; pick the section's teacher after creation via the registrar if needed.</p>
+          <p className="text-xs text-ink-faint">Section will be named as 9A, 10B, etc. according to Ethiopian cataloging.</p>
         </Form>
       </Modal>
       <Modal open={modal === "category"} onClose={() => setModal(null)} kicker="Weighting" title="New grading category">
