@@ -37,9 +37,13 @@ export default function SiteHeader({
         className="h-[3px] w-full"
         style={{ background: "linear-gradient(90deg,#b07d3c,#5b3a22 55%,#6f7a45)" }}
       />
-      <div className="mx-auto flex max-w-[1180px] items-center justify-between gap-4 px-4 py-3 md:px-6">
+      <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 md:px-6">
         <Link href="/dashboard" className="group flex items-center gap-3">
-          <Crest letter="S" size={38} className="transition-transform duration-300 group-hover:rotate-6" />
+          <Crest
+            letter="S"
+            size={38}
+            className="transition-transform duration-300 group-hover:rotate-6 group-hover:scale-105"
+          />
           <span className="leading-none">
             <span className="block font-display text-lg font-semibold tracking-tight text-ink">
               School SIS
@@ -50,12 +54,12 @@ export default function SiteHeader({
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden flex-wrap items-center justify-end gap-x-1 gap-y-1 md:flex">
           {meta.nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`group relative rounded-full px-3.5 py-2 text-sm font-semibold transition ${
+              className={`group relative rounded-full px-3.5 py-2 text-sm font-semibold transition-colors ${
                 isActive(item.href) ? "text-cocoa" : "text-ink-mute hover:text-cocoa"
               }`}
             >
@@ -69,7 +73,7 @@ export default function SiteHeader({
           ))}
 
           <div className="group relative">
-            <button className="flex items-center gap-1 rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-ink-mute transition hover:text-cocoa">
+            <button className="flex items-center gap-1 rounded-full border border-line bg-paper px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-ink-mute transition hover:-translate-y-0.5 hover:text-cocoa hover:shadow-soft">
               Roadmap
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.4">
                 <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
@@ -82,7 +86,7 @@ export default function SiteHeader({
               {meta.roadmap.map((r) => (
                 <div
                   key={r}
-                  className="flex items-center justify-between rounded-xl px-3 py-2 text-sm text-ink-soft"
+                  className="flex items-center justify-between rounded-xl px-3 py-2 text-sm text-ink-soft transition hover:bg-cream-100"
                 >
                   {r}
                   <span className="rounded-full bg-cream-200 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-ink-faint">
@@ -97,7 +101,13 @@ export default function SiteHeader({
         <div className="flex items-center gap-3">
           <div className="hidden items-center gap-2.5 sm:flex">
             <span
-              className="grid h-9 w-9 place-items-center rounded-full font-display text-sm font-semibold text-cream-50"
+              className="grid h-2 w-2 shrink-0 place-items-center rounded-full bg-olive"
+              title="Session active"
+            >
+              <span className="h-2 w-2 animate-ping rounded-full bg-olive/60" />
+            </span>
+            <span
+              className="grid h-9 w-9 place-items-center rounded-full font-display text-sm font-semibold text-cream-50 shadow-soft ring-2 ring-transparent transition duration-200 hover:scale-105 hover:ring-gold/40"
               style={{ background: meta.accent }}
             >
               {initials(user.firstName, user.lastName)}
@@ -111,18 +121,22 @@ export default function SiteHeader({
           </div>
           <button
             onClick={logout}
-            className="hidden rounded-full border border-line bg-paper px-3.5 py-2 text-sm font-semibold text-bad transition hover:bg-bad/10 sm:inline-flex"
+            className="hidden rounded-full border border-line bg-paper px-3.5 py-2 text-sm font-semibold text-bad transition hover:-translate-y-0.5 hover:bg-bad/10 sm:inline-flex"
           >
             Logout
           </button>
 
           <button
             onClick={() => setOpen((v) => !v)}
-            className="grid h-9 w-9 place-items-center rounded-full border border-line bg-paper text-cocoa md:hidden"
+            className="grid h-9 w-9 place-items-center rounded-full border border-line bg-paper text-cocoa transition hover:bg-cream-100 md:hidden"
             aria-label="Menu"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
+              {open ? (
+                <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+              ) : (
+                <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
+              )}
             </svg>
           </button>
         </div>
@@ -140,14 +154,15 @@ export default function SiteHeader({
             <span className="text-sm font-semibold text-ink">
               {user.firstName} {user.lastName}
             </span>
+            <RoleBadge role={user.role} accent={meta.accent} />
           </div>
           {meta.nav.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
-              className={`block rounded-xl px-3 py-2 text-sm font-semibold ${
-                isActive(item.href) ? "bg-cream-100 text-cocoa" : "text-ink-soft"
+              className={`block rounded-xl px-3 py-2 text-sm font-semibold transition ${
+                isActive(item.href) ? "bg-cream-100 text-cocoa" : "text-ink-soft hover:bg-cream-50"
               }`}
             >
               {item.label}
@@ -164,7 +179,7 @@ export default function SiteHeader({
           ))}
           <button
             onClick={logout}
-            className="mt-2 w-full rounded-full border border-line px-3 py-2 text-sm font-semibold text-bad"
+            className="mt-2 w-full rounded-full border border-line px-3 py-2 text-sm font-semibold text-bad transition hover:bg-bad/10"
           >
             Logout
           </button>
