@@ -21,8 +21,15 @@ export async function PATCH(
   if (typeof body.lastName === "string") allowed.lastName = body.lastName;
   if (typeof body.role === "string") allowed.role = body.role;
   if (typeof body.status === "string") allowed.status = body.status;
+  if (body.phone === null || typeof body.phone === "string") allowed.phone = body.phone;
 
+  const before = await prisma.user.findUnique({ where: { id }, select: { role: true, status: true } });
   const u = await prisma.user.update({ where: { id }, data: allowed });
+
+  await prisma.auditLog.create({
+    data: { actorId: user.id, action: "USER_UPDATED", entity: "User", entityId: id, before, after: allowed },
+  });
+
   return json(u);
 }
 
@@ -34,9 +41,11 @@ export async function DELETE(
   if (!canManageUsers(user)) return bad("Forbidden", 403);
 
   const { id } = await params;
-  const u = await prisma.user.update({
-    where: { id },
-    data: { status: "DEACTIVATED" },
+  const u = await prisma.user.update({ where: { id }, data: { status: "DEACTIVATED" } });
+
+  await prisma.auditLog.create({
+    data: { actorId: user.id, action: "USER_DEACTIVATED", entity: "User", entityId: id },
   });
+
   return json(u);
 }
